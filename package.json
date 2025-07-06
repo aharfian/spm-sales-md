@@ -1,0 +1,15 @@
+{
+  "name": "spm-sales-md",
+  "version": "1.0.0",
+  "description": "Middleware untuk menghubungkan Frontend Vercel ke Google Apps Script via Render",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2"
+  }
+}
