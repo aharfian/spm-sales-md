@@ -22,27 +22,29 @@ app.get('/', (req, res) => {
   res.json({ message: 'SPM Middleware is running.' });
 });
 
-// Proxy GET request ke GAS
+// ✅ Proxy GET request ke GAS (dengan encoding parameter yang benar)
 app.get('/proxy', async (req, res) => {
   try {
-    const url = new URL(GAS_URL);
-    url.search = new URLSearchParams({
-      ...req.query,
-      token: SECRET,
-    }).toString();
+    const queryParams = new URLSearchParams(req.query);
+    queryParams.set('token', SECRET);
 
-    const response = await fetch(url.href);
+    const fullUrl = `${GAS_URL}?${queryParams.toString()}`;
+    const response = await fetch(fullUrl);
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Gagal proxy GET', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Gagal proxy GET',
+      error: error.message,
+    });
   }
 });
 
-// Proxy POST request ke GAS
+// ✅ Proxy POST request ke GAS
 app.post('/proxy', async (req, res) => {
   try {
-    const response = await fetch(GAS_URL + '?token=' + SECRET, {
+    const response = await fetch(`${GAS_URL}?token=${SECRET}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
@@ -51,7 +53,11 @@ app.post('/proxy', async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Gagal proxy POST', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Gagal proxy POST',
+      error: error.message,
+    });
   }
 });
 
