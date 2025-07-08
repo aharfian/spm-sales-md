@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 const GAS_URL = process.env.GAS_WEBAPP_URL;
 const SECRET = process.env.SECRET_TOKEN;
+const ALLOWED_PINS = process.env.ALLOWED_PINS?.split(',').map(p => p.trim()) || [];
 
 if (!GAS_URL || !SECRET) {
   console.error('❌ GAS_WEBAPP_URL atau SECRET_TOKEN belum diset!');
@@ -18,11 +19,12 @@ if (!GAS_URL || !SECRET) {
 app.use(cors());
 app.use(express.json());
 
+// ✅ Cek koneksi
 app.get('/', (req, res) => {
   res.json({ message: 'SPM Middleware is running.' });
 });
 
-// ✅ Proxy GET request ke GAS (dengan encoding parameter yang benar)
+// ✅ Proxy GET request ke GAS (dengan parameter token)
 app.get('/proxy', async (req, res) => {
   try {
     const queryParams = new URLSearchParams(req.query);
@@ -41,8 +43,18 @@ app.get('/proxy', async (req, res) => {
   }
 });
 
-// ✅ Proxy POST request ke GAS
+// ✅ Proxy POST request dengan validasi PIN
 app.post('/proxy', async (req, res) => {
+  const { pin } = req.body;
+
+  // Validasi PIN dari .env
+  if (!pin || !ALLOWED_PINS.includes(pin)) {
+    return res.status(403).json({
+      success: false,
+      message: '❌ PIN salah atau tidak diizinkan!',
+    });
+  }
+
   try {
     const response = await fetch(`${GAS_URL}?token=${SECRET}`, {
       method: 'POST',
@@ -61,6 +73,7 @@ app.post('/proxy', async (req, res) => {
   }
 });
 
+// 🚀 Jalankan middleware
 app.listen(PORT, () => {
   console.log(`🚀 Middleware running on port ${PORT}`);
 });
